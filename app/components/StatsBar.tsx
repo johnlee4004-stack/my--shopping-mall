@@ -11,35 +11,26 @@ export default function StatsBar({ diaries }: Props) {
   const countries = new Set(diaries.map(d => d.country).filter(Boolean)).size;
   const locations = new Set(diaries.map(d => d.location)).size;
 
+  const stats = [
+    { icon: BookOpen, label: '총 일기', value: diaries.length, bg: 'bg-blue-100', color: 'text-blue-600' },
+    { icon: MapPin,   label: '방문 장소', value: locations, bg: 'bg-green-100', color: 'text-green-600' },
+    { icon: Globe,    label: '방문 국가', value: countries, bg: 'bg-purple-100', color: 'text-purple-600' },
+  ];
+
   return (
-    <div className="grid grid-cols-3 gap-4 mb-8">
-      <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3">
-        <div className="bg-blue-100 p-3 rounded-xl">
-          <BookOpen size={20} className="text-blue-600" />
+    <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      {stats.map(s => (
+        <div key={s.label} className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm flex items-center gap-2 sm:gap-3">
+          <div className={`${s.bg} p-2 sm:p-3 rounded-xl flex-shrink-0`}>
+            <s.icon size={16} className={`${s.color} sm:hidden`} />
+            <s.icon size={20} className={`${s.color} hidden sm:block`} />
+          </div>
+          <div className="min-w-0">
+            <div className="text-xl sm:text-2xl font-bold text-gray-800">{s.value}</div>
+            <div className="text-xs text-gray-500 truncate">{s.label}</div>
+          </div>
         </div>
-        <div>
-          <div className="text-2xl font-bold text-gray-800">{diaries.length}</div>
-          <div className="text-xs text-gray-500">총 일기</div>
-        </div>
-      </div>
-      <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3">
-        <div className="bg-green-100 p-3 rounded-xl">
-          <MapPin size={20} className="text-green-600" />
-        </div>
-        <div>
-          <div className="text-2xl font-bold text-gray-800">{locations}</div>
-          <div className="text-xs text-gray-500">방문 장소</div>
-        </div>
-      </div>
-      <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3">
-        <div className="bg-purple-100 p-3 rounded-xl">
-          <Globe size={20} className="text-purple-600" />
-        </div>
-        <div>
-          <div className="text-2xl font-bold text-gray-800">{countries}</div>
-          <div className="text-xs text-gray-500">방문 국가</div>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }
