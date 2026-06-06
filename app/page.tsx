@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useDiaryStore } from './store/diaryStore';
 import { DiaryEntry } from './types/diary';
 import DiaryCard from './components/DiaryCard';
@@ -23,6 +23,13 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [filterMood, setFilterMood] = useState<DiaryEntry['mood'] | 'all'>('all');
   const [activeTab, setActiveTab] = useState<TabType>('home');
+
+  // PWA 숏컷: ?action=new 로 실행 시 바로 작성 폼 열기
+  useEffect(() => {
+    const handler = () => { setEditingDiary(undefined); setShowForm(true); };
+    window.addEventListener('open-new-diary', handler);
+    return () => window.removeEventListener('open-new-diary', handler);
+  }, []);
 
   const filteredAndSorted = useMemo(() => {
     let result = searchQuery ? searchDiaries(searchQuery) : [...diaries];
