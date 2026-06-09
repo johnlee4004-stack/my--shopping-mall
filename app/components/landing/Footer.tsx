@@ -22,7 +22,7 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold mb-4">연락처</h4>
             <ul className="space-y-2 text-sm">
-              <li>📞 <a href="tel:032-000-0000" className="hover:text-white transition-colors">032-000-0000</a></li>
+              <li>📞 <a href="tel:032-721-7720" className="hover:text-white transition-colors">032-721-7720</a></li>
               <li>💬 <a href="https://open.kakao.com/o/doxhayx" className="hover:text-white transition-colors">카카오톡 채널 상담</a></li>
               <li>📧 <a href="mailto:hello@doxhayx.com" className="hover:text-white transition-colors">hello@doxhayx.com</a></li>
               <li>⏰ 평일·주말 08:00 – 20:00</li>

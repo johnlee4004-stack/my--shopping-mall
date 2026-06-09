@@ -47,11 +47,11 @@ export default function Header() {
         {/* 전화 버튼 */}
         <div className="flex items-center gap-3">
           <a
-            href="tel:032-000-0000"
+            href="tel:032-721-7720"
             className="hidden sm:flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-sm"
           >
             <Phone size={15} />
-            032-000-0000
+            032-721-7720
           </a>
           <button
             className="md:hidden p-2 text-gray-600"
@@ -77,7 +77,7 @@ export default function Header() {
             </a>
           ))}
           <a
-            href="tel:032-000-0000"
+            href="tel:032-721-7720"
             className="flex items-center gap-2 bg-orange-500 text-white px-4 py-3 rounded-xl font-bold text-sm mt-3 justify-center"
           >
             <Phone size={15} />

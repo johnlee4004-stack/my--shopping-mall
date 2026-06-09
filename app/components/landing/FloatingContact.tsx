@@ -11,7 +11,7 @@ export default function FloatingContact() {
       {/* 모바일 고정 하단 바 */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 grid grid-cols-2 border-t border-gray-200 bg-white pb-safe shadow-2xl">
         <a
-          href="tel:032-000-0000"
+          href="tel:032-721-7720"
           className="flex items-center justify-center gap-2 py-4 text-white bg-gray-800 font-bold text-sm active:bg-gray-700"
         >
           <Phone size={18} />
@@ -33,11 +33,11 @@ export default function FloatingContact() {
         {expanded && (
           <div className="flex flex-col gap-2 items-end animate-fade-in">
             <a
-              href="tel:032-000-0000"
+              href="tel:032-721-7720"
               className="flex items-center gap-2 bg-gray-800 text-white px-5 py-3 rounded-2xl font-bold text-sm shadow-xl hover:bg-gray-700 transition-colors whitespace-nowrap"
             >
               <Phone size={16} />
-              032-000-0000 전화 상담
+              032-721-7720 전화 상담
             </a>
             <a
               href="https://open.kakao.com/o/doxhayx"

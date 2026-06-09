@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Send, Upload, CheckCircle, X, Camera } from 'lucide-react';
+import { Send, CheckCircle, X, Camera, AlertCircle } from 'lucide-react';
+import { uploadQuoteImage } from '@/lib/supabase';
 
-type FormState = 'idle' | 'submitting' | 'success';
+type FormState = 'idle' | 'uploading' | 'submitting' | 'success' | 'error';
 
 const serviceOptions = [
   '누수·방수', '전기·조명', '설비·배관', '문·창호', '도배·마루', '인테리어 리모델링', '기타',
@@ -18,6 +19,7 @@ export default function QuoteForm() {
   const [files, setFiles]         = useState<File[]>([]);
   const [dragging, setDragging]   = useState(false);
   const [formState, setFormState] = useState<FormState>('idle');
+  const [errorMsg, setErrorMsg]   = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   const formatPhone = (v: string) => {
@@ -42,10 +44,48 @@ export default function QuoteForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim() || !service) return;
-    setFormState('submitting');
-    await new Promise(r => setTimeout(r, 1200));
-    setFormState('success');
+
+    setFormState('uploading');
+    setErrorMsg('');
+
+    try {
+      // 1. Supabase Storage에 이미지 업로드
+      const tempId = crypto.randomUUID();
+      const imageUrls: string[] = [];
+      for (const file of files) {
+        const url = await uploadQuoteImage(file, tempId);
+        if (url) imageUrls.push(url);
+      }
+
+      // 2. API 라우트로 DB 저장
+      setFormState('submitting');
+      const res = await fetch('/api/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          phone: phone.trim(),
+          service,
+          preferDate: date || undefined,
+          detail: detail.trim() || undefined,
+          imageUrls,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json() as { error?: string };
+        throw new Error(data.error ?? '오류가 발생했습니다.');
+      }
+
+      setFormState('success');
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      setFormState('error');
+    }
   };
+
+  const isLoading = formState === 'uploading' || formState === 'submitting';
+  const loadingText = formState === 'uploading' ? '사진 업로드 중...' : '접수 중...';
 
   if (formState === 'success') {
     return (
@@ -60,14 +100,23 @@ export default function QuoteForm() {
               <strong className="text-gray-800">{name}</strong>님, 접수가 완료되었습니다.
             </p>
             <p className="text-gray-500 mb-8">
-              <strong className="text-orange-500">1시간 이내</strong>에 전문 상담원이 <strong>{phone}</strong>으로 연락드립니다.
+              <strong className="text-orange-500">1시간 이내</strong>에 전문 상담원이{' '}
+              <strong>{phone}</strong>으로 연락드립니다.
             </p>
-            <a
-              href="https://open.kakao.com/o/doxhayx"
-              className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold px-8 py-3 rounded-2xl transition-colors"
-            >
-              카카오톡으로도 확인하기
-            </a>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <a
+                href="https://open.kakao.com/o/doxhayx"
+                className="inline-flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold px-8 py-3 rounded-2xl transition-colors"
+              >
+                💬 카카오톡으로도 확인하기
+              </a>
+              <a
+                href="tel:032-721-7720"
+                className="inline-flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 font-bold px-8 py-3 rounded-2xl hover:border-orange-400 transition-colors"
+              >
+                📞 032-721-7720
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -96,7 +145,8 @@ export default function QuoteForm() {
                 onChange={e => setName(e.target.value)}
                 placeholder="홍길동"
                 required
-                className="w-full border-2 border-gray-100 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none transition-colors"
+                disabled={isLoading}
+                className="w-full border-2 border-gray-100 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none transition-colors disabled:bg-gray-50"
               />
             </div>
             <div>
@@ -107,7 +157,8 @@ export default function QuoteForm() {
                 onChange={e => setPhone(formatPhone(e.target.value))}
                 placeholder="010-0000-0000"
                 required
-                className="w-full border-2 border-gray-100 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none transition-colors"
+                disabled={isLoading}
+                className="w-full border-2 border-gray-100 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none transition-colors disabled:bg-gray-50"
               />
             </div>
           </div>
@@ -120,8 +171,9 @@ export default function QuoteForm() {
                 <button
                   key={opt}
                   type="button"
+                  disabled={isLoading}
                   onClick={() => setService(opt)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium border-2 transition-all disabled:opacity-60 ${
                     service === opt
                       ? 'border-orange-500 bg-orange-500 text-white shadow-sm'
                       : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-orange-300'
@@ -141,22 +193,25 @@ export default function QuoteForm() {
               value={date}
               onChange={e => setDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
-              className="w-full border-2 border-gray-100 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none transition-colors"
+              disabled={isLoading}
+              className="w-full border-2 border-gray-100 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none transition-colors disabled:bg-gray-50"
             />
           </div>
 
           {/* 사진 첨부 */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1.5">
-              문제 사진 첨부 <span className="text-gray-400 font-normal">(최대 5장, 정확한 견적에 도움됩니다)</span>
+              문제 사진 첨부 <span className="text-gray-400 font-normal">(최대 5장 · 정확한 견적에 도움됩니다)</span>
             </label>
             <div
               onDragOver={e => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
-              onClick={() => fileRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
-                dragging ? 'border-orange-400 bg-orange-50' : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50/50'
+              onClick={() => !isLoading && fileRef.current?.click()}
+              className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
+                isLoading ? 'cursor-not-allowed opacity-60' :
+                dragging ? 'border-orange-400 bg-orange-50 cursor-pointer' :
+                'border-gray-200 hover:border-orange-300 hover:bg-orange-50/50 cursor-pointer'
               }`}
             >
               <Camera size={28} className="mx-auto text-gray-300 mb-2" />
@@ -171,13 +226,15 @@ export default function QuoteForm() {
                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100">
                       <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setFiles(p => p.filter((_, j) => j !== i))}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X size={10} />
-                    </button>
+                    {!isLoading && (
+                      <button
+                        type="button"
+                        onClick={() => setFiles(p => p.filter((_, j) => j !== i))}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={10} />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -192,19 +249,31 @@ export default function QuoteForm() {
               onChange={e => setDetail(e.target.value)}
               placeholder="어디서 어떤 문제가 발생했는지 간단히 적어주세요. (예: 화장실 세면대 아래 물이 새고 있어요)"
               rows={4}
-              className="w-full border-2 border-gray-100 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none transition-colors resize-none"
+              disabled={isLoading}
+              className="w-full border-2 border-gray-100 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none transition-colors resize-none disabled:bg-gray-50"
             />
           </div>
 
+          {/* 에러 메시지 */}
+          {formState === 'error' && (
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
+              <AlertCircle size={16} className="flex-shrink-0" />
+              {errorMsg}
+              <button type="button" onClick={() => setFormState('idle')} className="ml-auto text-red-400 hover:text-red-600">
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
           <button
             type="submit"
-            disabled={formState === 'submitting'}
-            className="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:opacity-60 text-white py-4 rounded-2xl font-black text-lg transition-all shadow-lg shadow-orange-500/30 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            disabled={isLoading || !service}
+            className="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black text-lg transition-all shadow-lg shadow-orange-500/30 hover:not-disabled:-translate-y-0.5 flex items-center justify-center gap-2"
           >
-            {formState === 'submitting' ? (
+            {isLoading ? (
               <>
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                접수 중...
+                {loadingText}
               </>
             ) : (
               <>

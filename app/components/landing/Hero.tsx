@@ -3,21 +3,23 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, Clock, Shield, Star, ArrowRight } from 'lucide-react';
 
+// 실제 현장 사진으로 교체 예정 — public/gallery/ 폴더에 업로드 후 경로 변경
+// 예: before: '/gallery/bathroom-leak-before.jpg', after: '/gallery/bathroom-leak-after.jpg'
 const slides = [
   {
-    before: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
-    after:  'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800',
+    before: 'https://images.unsplash.com/photo-1620626011761-996317702b4b?w=800&q=80',
+    after:  'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80',
     label: '욕실 누수 → 완벽 수리',
   },
   {
-    before: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800',
-    after:  'https://images.unsplash.com/photo-1556909190-eccf4a8bf97a?w=800',
-    label: '벽면 균열 → 깔끔 마감',
+    before: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800&q=80',
+    after:  'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
+    label: '도배·도색 → 새집처럼',
   },
   {
-    before: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=800',
-    after:  'https://images.unsplash.com/photo-1513506003901-1e6a35fb9c59?w=800',
-    label: '전기 배선 → 안전 시공',
+    before: 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800&q=80',
+    after:  'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&q=80',
+    label: '전기 설비 → 안전 시공',
   },
 ];
 
@@ -91,10 +93,10 @@ export default function Hero() {
               <ArrowRight size={20} />
             </button>
             <a
-              href="tel:032-000-0000"
+              href="tel:032-721-7720"
               className="flex items-center justify-center gap-2 border-2 border-white/30 hover:border-white text-white px-6 py-4 rounded-2xl font-bold text-base transition-all hover:bg-white/10"
             >
-              📞 032-000-0000
+              📞 032-721-7720
             </a>
           </div>
         </div>
