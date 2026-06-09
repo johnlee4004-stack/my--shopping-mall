@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useDiaryStore } from './store/diaryStore';
 import { DiaryEntry } from './types/diary';
 import DiaryCard from './components/DiaryCard';
@@ -8,13 +8,15 @@ import DiaryForm from './components/DiaryForm';
 import DiaryDetail from './components/DiaryDetail';
 import SearchBar from './components/SearchBar';
 import StatsBar from './components/StatsBar';
-import { Plus, BookOpen, Search, Home, SlidersHorizontal } from 'lucide-react';
+import { ToastContainer, useToast } from './components/Toast';
+import { Plus, BookOpen, Search, Home, SlidersHorizontal, Download, Upload } from 'lucide-react';
 
 type SortOption = 'newest' | 'oldest' | 'location';
 type TabType = 'home' | 'search' | 'filter';
 
 export default function HomePage() {
-  const { diaries, isLoaded, addDiary, updateDiary, deleteDiary, searchDiaries } = useDiaryStore();
+  const { diaries, isLoaded, addDiary, updateDiary, deleteDiary, searchDiaries, save } = useDiaryStore();
+  const { toasts, addToast, removeToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -23,8 +25,8 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [filterMood, setFilterMood] = useState<DiaryEntry['mood'] | 'all'>('all');
   const [activeTab, setActiveTab] = useState<TabType>('home');
+  const importRef = useRef<HTMLInputElement>(null);
 
-  // PWA 숏컷: ?action=new 로 실행 시 바로 작성 폼 열기
   useEffect(() => {
     const handler = () => { setEditingDiary(undefined); setShowForm(true); };
     window.addEventListener('open-new-diary', handler);
@@ -43,16 +45,63 @@ export default function HomePage() {
   }, [diaries, searchQuery, sortBy, filterMood, searchDiaries]);
 
   const handleSubmit = (data: Omit<DiaryEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (editingDiary) updateDiary(editingDiary.id, data);
-    else addDiary(data);
+    if (editingDiary) {
+      updateDiary(editingDiary.id, data);
+      addToast('일기가 수정되었습니다.');
+    } else {
+      addDiary(data);
+      addToast('새 일기가 저장되었습니다.');
+    }
     setShowForm(false);
     setEditingDiary(undefined);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteDiary(id);
+    addToast('일기가 삭제되었습니다.', 'error');
   };
 
   const handleEdit = (diary: DiaryEntry) => {
     setEditingDiary(diary);
     setViewingDiary(undefined);
     setShowForm(true);
+  };
+
+  const handleExport = () => {
+    const blob = new Blob([JSON.stringify(diaries, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `travel-diary-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast(`${diaries.length}개 일기를 내보냈습니다.`);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target?.result as string) as DiaryEntry[];
+        if (!Array.isArray(imported)) throw new Error();
+        const merged = [...diaries];
+        let added = 0;
+        for (const entry of imported) {
+          if (!merged.find(d => d.id === entry.id)) {
+            merged.push(entry);
+            added++;
+          }
+        }
+        save(merged);
+        addToast(`${added}개 일기를 가져왔습니다.`);
+      } catch {
+        addToast('파일 형식이 올바르지 않습니다.', 'error');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const moodFilters: { value: DiaryEntry['mood'] | 'all'; label: string; emoji: string }[] = [
@@ -77,6 +126,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+
       {/* ── 헤더 ── */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -87,14 +138,32 @@ export default function HomePage() {
               <p className="text-xs text-gray-400 hidden sm:block">소중한 여행의 기억을 남겨보세요</p>
             </div>
           </div>
-          {/* 데스크탑 전용 버튼 */}
-          <button
-            onClick={() => { setEditingDiary(undefined); setShowForm(true); }}
-            className="hidden sm:flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
-          >
-            <Plus size={18} />
-            새 일기
-          </button>
+          <div className="hidden sm:flex items-center gap-2">
+            <input ref={importRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
+            <button
+              onClick={() => importRef.current?.click()}
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-2 rounded-xl transition-colors"
+              title="JSON 파일에서 가져오기"
+            >
+              <Upload size={15} />
+              가져오기
+            </button>
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-2 rounded-xl transition-colors"
+              title="JSON으로 내보내기"
+            >
+              <Download size={15} />
+              내보내기
+            </button>
+            <button
+              onClick={() => { setEditingDiary(undefined); setShowForm(true); }}
+              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
+            >
+              <Plus size={18} />
+              새 일기
+            </button>
+          </div>
         </div>
       </header>
 
@@ -110,7 +179,6 @@ export default function HomePage() {
         {/* 필터 (모바일: filter 탭일 때 / 데스크탑: 항상) */}
         <div className={`mb-6 ${activeTab !== 'filter' ? 'hidden sm:block' : 'block'}`}>
           <div className="flex items-center gap-3">
-            {/* 기분 필터 - 가로 스크롤 */}
             <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 pb-1">
               {moodFilters.map(f => (
                 <button
@@ -171,7 +239,7 @@ export default function HomePage() {
                 key={diary.id}
                 diary={diary}
                 onEdit={handleEdit}
-                onDelete={deleteDiary}
+                onDelete={handleDelete}
                 onClick={setViewingDiary}
               />
             ))}
@@ -235,7 +303,7 @@ export default function HomePage() {
           diary={viewingDiary}
           onClose={() => setViewingDiary(undefined)}
           onEdit={handleEdit}
-          onDelete={deleteDiary}
+          onDelete={handleDelete}
         />
       )}
     </div>

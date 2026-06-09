@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { DiaryEntry, MoodType, WeatherType } from '../types/diary';
-import { X, Plus, ChevronDown } from 'lucide-react';
+import { X, Plus, ChevronDown, ImageIcon } from 'lucide-react';
 
 const moods: { value: MoodType; label: string; emoji: string }[] = [
   { value: 'happy',   label: '행복',  emoji: '😊' },
@@ -26,7 +26,10 @@ interface Props {
   onCancel: () => void;
 }
 
+const CONTENT_MAX = 2000;
+
 export default function DiaryForm({ diary, onSubmit, onCancel }: Props) {
+  const formId = useId();
   const [title, setTitle]       = useState('');
   const [location, setLocation] = useState('');
   const [country, setCountry]   = useState('');
@@ -37,6 +40,7 @@ export default function DiaryForm({ diary, onSubmit, onCancel }: Props) {
   const [tags, setTags]         = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (diary) {
@@ -51,6 +55,12 @@ export default function DiaryForm({ diary, onSubmit, onCancel }: Props) {
       setImageUrl(diary.imageUrl || '');
     }
   }, [diary]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onCancel]);
 
   const addTag = () => {
     const t = tagInput.trim();
@@ -93,7 +103,7 @@ export default function DiaryForm({ diary, onSubmit, onCancel }: Props) {
         </div>
 
         {/* 폼 본문 */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4">
+        <form id={formId} onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4">
           {/* 제목 */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">제목 *</label>
@@ -186,10 +196,15 @@ export default function DiaryForm({ diary, onSubmit, onCancel }: Props) {
 
           {/* 내용 */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">내용 *</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-semibold text-gray-700">내용 *</label>
+              <span className={`text-xs ${content.length > CONTENT_MAX * 0.9 ? 'text-red-400' : 'text-gray-400'}`}>
+                {content.length}/{CONTENT_MAX}
+              </span>
+            </div>
             <textarea
               value={content}
-              onChange={e => setContent(e.target.value)}
+              onChange={e => setContent(e.target.value.slice(0, CONTENT_MAX))}
               placeholder="여행에 대한 이야기를 자유롭게 써보세요..."
               rows={5}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
@@ -240,10 +255,26 @@ export default function DiaryForm({ diary, onSubmit, onCancel }: Props) {
             <input
               type="url"
               value={imageUrl}
-              onChange={e => setImageUrl(e.target.value)}
+              onChange={e => { setImageUrl(e.target.value); setImageError(false); }}
               placeholder="https://..."
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
+            {imageUrl && !imageError && (
+              <div className="mt-2 rounded-xl overflow-hidden h-36 bg-gray-100 relative">
+                <img
+                  src={imageUrl}
+                  alt="미리보기"
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              </div>
+            )}
+            {imageUrl && imageError && (
+              <div className="mt-2 rounded-xl h-20 bg-gray-100 flex items-center justify-center gap-2 text-gray-400 text-sm">
+                <ImageIcon size={16} />
+                이미지를 불러올 수 없습니다
+              </div>
+            )}
           </div>
 
           {/* 여백 (iOS 키보드 대비) */}
@@ -261,8 +292,8 @@ export default function DiaryForm({ diary, onSubmit, onCancel }: Props) {
               취소
             </button>
             <button
-              form=""
-              onClick={handleSubmit as unknown as React.MouseEventHandler}
+              type="submit"
+              form={formId}
               className="flex-2 flex-grow-[2] bg-blue-500 text-white py-3.5 rounded-xl hover:bg-blue-600 active:bg-blue-700 transition-colors font-semibold text-sm shadow-sm"
             >
               {diary ? '수정하기' : '작성하기'}

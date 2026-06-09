@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { DiaryEntry } from '../types/diary';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { MapPin, Calendar, Tag, Pencil, Trash2 } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
 
 const moodEmoji: Record<DiaryEntry['mood'], string> = {
   happy: '😊', excited: '🤩', peaceful: '😌', tired: '😴', sad: '😢',
@@ -23,7 +25,10 @@ interface Props {
 }
 
 export default function DiaryCard({ diary, onEdit, onDelete, onClick }: Props) {
+  const [showConfirm, setShowConfirm] = useState(false);
+
   return (
+    <>
     <div
       className="bg-white rounded-2xl shadow-sm overflow-hidden active:scale-[0.98] hover:shadow-lg transition-all duration-200 cursor-pointer group"
       onClick={() => onClick(diary)}
@@ -34,6 +39,7 @@ export default function DiaryCard({ diary, onEdit, onDelete, onClick }: Props) {
           <img
             src={diary.imageUrl}
             alt={diary.title}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
@@ -113,9 +119,7 @@ export default function DiaryCard({ diary, onEdit, onDelete, onClick }: Props) {
             수정
           </button>
           <button
-            onClick={() => {
-              if (confirm('이 일기를 삭제할까요?')) onDelete(diary.id);
-            }}
+            onClick={() => setShowConfirm(true)}
             className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50 active:bg-red-100 min-h-[36px]"
           >
             <Trash2 size={13} />
@@ -124,5 +128,14 @@ export default function DiaryCard({ diary, onEdit, onDelete, onClick }: Props) {
         </div>
       </div>
     </div>
+
+    {showConfirm && (
+      <ConfirmDialog
+        message="이 일기를 삭제하면 복구할 수 없습니다."
+        onConfirm={() => { onDelete(diary.id); setShowConfirm(false); }}
+        onCancel={() => setShowConfirm(false)}
+      />
+    )}
+    </>
   );
 }

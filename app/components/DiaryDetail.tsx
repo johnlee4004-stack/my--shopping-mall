@@ -1,9 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { DiaryEntry } from '../types/diary';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { MapPin, Calendar, Tag, X, Pencil, Trash2 } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
 
 const moodEmoji: Record<DiaryEntry['mood'], string> = {
   happy: '😊', excited: '🤩', peaceful: '😌', tired: '😴', sad: '😢',
@@ -26,7 +28,16 @@ interface Props {
 }
 
 export default function DiaryDetail({ diary, onClose, onEdit, onDelete }: Props) {
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
   return (
+    <>
     <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4">
       {/* 배경 */}
       <div className="absolute inset-0 bg-black/50 animate-fade-in" onClick={onClose} />
@@ -138,9 +149,7 @@ export default function DiaryDetail({ diary, onClose, onEdit, onDelete }: Props)
               수정
             </button>
             <button
-              onClick={() => {
-                if (confirm('이 일기를 삭제할까요?')) { onDelete(diary.id); onClose(); }
-              }}
+              onClick={() => setShowConfirm(true)}
               className="flex-1 flex items-center justify-center gap-2 border border-red-200 text-red-500 py-3 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors font-semibold text-sm"
             >
               <Trash2 size={15} />
@@ -150,5 +159,14 @@ export default function DiaryDetail({ diary, onClose, onEdit, onDelete }: Props)
         </div>
       </div>
     </div>
+
+    {showConfirm && (
+      <ConfirmDialog
+        message="이 일기를 삭제하면 복구할 수 없습니다."
+        onConfirm={() => { onDelete(diary.id); setShowConfirm(false); onClose(); }}
+        onCancel={() => setShowConfirm(false)}
+      />
+    )}
+    </>
   );
 }
