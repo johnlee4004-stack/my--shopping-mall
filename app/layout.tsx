@@ -1,46 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
-import PWARegister from "./components/PWARegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "여행 일기",
-  description: "소중한 여행의 기억을 기록하고 검색하는 앱",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "여행 일기",
-  },
-  icons: {
-    icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icon-192x192.png",  sizes: "192x192", type: "image/png" },
-    ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
+  title: "Dox-Hayx 집수리 전문 | 인천 전 지역 30분 내 출동",
+  description: "인천 집수리 고민, 사진 한 장으로 해결하세요. 누수·전기·설비·도배·인테리어 — 숙련 전문가가 1시간 내 연락, 30분 내 출동. 1년 무상 AS 보증.",
+  keywords: ["인천 집수리", "인천 누수 수리", "인천 전기 수리", "부평구 집수리", "연수구 집수리", "남동구 집수리", "인천 배관 수리", "인천 도배", "인천 당일 출동"],
+  openGraph: {
+    title: "Dox-Hayx 집수리 전문",
+    description: "인천 전 지역 집수리 전문. 30분 내 출동, 1년 무상 AS.",
+    type: "website",
+    locale: "ko_KR",
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
   viewportFit: "cover",
-  themeColor: "#3B82F6",
+  themeColor: "#f97316",
 };
 
 export default function RootLayout({
@@ -49,13 +33,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
+    <html lang="ko" className={`${geistSans.variable}`}>
+      <body className="antialiased">
         {children}
-        <PWARegister />
       </body>
     </html>
   );
