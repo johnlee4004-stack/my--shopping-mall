@@ -57,11 +57,16 @@ export default function QuoteForm() {
         if (url) imageUrls.push(url);
       }
 
-      // 2. API 라우트로 DB 저장
+      // 2. Supabase Edge Function으로 DB 저장 (브라우저 → Supabase 직접)
       setFormState('submitting');
-      const res = await fetch('/api/quote', {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const res = await fetch(`${supabaseUrl}/functions/v1/submit-quote`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
+        },
         body: JSON.stringify({
           name: name.trim(),
           phone: phone.trim(),

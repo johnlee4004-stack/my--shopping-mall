@@ -11,6 +11,40 @@ function getClient(): SupabaseClient {
   return _client;
 }
 
+export type QuotePayload = {
+  name: string;
+  phone: string;
+  service: string;
+  preferDate?: string | null;
+  detail?: string | null;
+  imageUrls?: string[];
+};
+
+export async function insertQuoteRequest(payload: QuotePayload): Promise<{ id: string } | null> {
+  try {
+    const supabase = getClient();
+    const { data, error } = await supabase
+      .from('quote_requests')
+      .insert({
+        name: payload.name,
+        phone: payload.phone,
+        service: payload.service,
+        preferDate: payload.preferDate ?? null,
+        detail: payload.detail ?? null,
+        imageUrls: payload.imageUrls ?? [],
+      })
+      .select('id')
+      .single();
+    if (error) {
+      console.error('[insertQuoteRequest]', error);
+      return null;
+    }
+    return data as { id: string };
+  } catch {
+    return null;
+  }
+}
+
 export async function uploadQuoteImage(file: File, quoteId: string): Promise<string | null> {
   try {
     const supabase = getClient();
