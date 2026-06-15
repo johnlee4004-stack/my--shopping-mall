@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="회의록" />
+  <meta name="description" content="전문적인 회의록을 쉽게 작성하고 공유하세요" />
+  <title>회의록 작성기</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <svg class="header-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      <rect x="2" y="2" width="24" height="24" rx="4" fill="rgba(255,255,255,0.2)"/>
+      <rect x="6" y="7"  width="16" height="2" rx="1" fill="white"/>
+      <rect x="6" y="11" width="11" height="2" rx="1" fill="white" opacity="0.85"/>
+      <rect x="6" y="15" width="13" height="2" rx="1" fill="white" opacity="0.85"/>
+      <rect x="6" y="19" width="8"  height="2" rx="1" fill="white" opacity="0.7"/>
+    </svg>
+    <h1 class="header-title">회의록 작성기</h1>
+    <div class="header-actions">
+      <button class="header-btn" id="btn-save" title="저장">💾 저장</button>
+      <button class="header-btn danger" id="btn-reset" title="초기화">🗑 초기화</button>
+    </div>
+  </header>
+
+  <!-- ── Tab Bar ── -->
+  <nav class="tab-bar" role="tablist" aria-label="앱 탭">
+    <button class="tab-btn active" id="tab-form" role="tab" aria-selected="true" aria-controls="view-form">
+      <span class="tab-icon">✏️</span>
+      <span>입력</span>
+    </button>
+    <button class="tab-btn" id="tab-preview" role="tab" aria-selected="false" aria-controls="view-preview">
+      <span class="tab-icon">📄</span>
+      <span>미리보기</span>
+    </button>
+  </nav>
+
+  <!-- ── Main Content ── -->
+  <main class="app-main">
+
+    <!-- ─── FORM VIEW ─── -->
+    <section id="view-form" class="view active" role="tabpanel" aria-labelledby="tab-form">
+
+      <!-- 회의 목적 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🎯</span>
+          <h2 class="card-title">회의 목적</h2>
+          <span class="card-badge">필수</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="purpose">
+            회의 목적<span class="required">*</span>
+          </label>
+          <textarea
+            id="purpose"
+            name="purpose"
+            rows="3"
+            placeholder="예) 신규 서비스 런칭 준비 현황 점검 및 일정 조율"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- 일시 및 장소 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📅</span>
+          <h2 class="card-title">일시 및 장소</h2>
+        </div>
+        <div class="field">
+          <label class="field-label" for="meeting-date">날짜</label>
+          <input type="date" id="meeting-date" name="meeting-date" />
+        </div>
+        <div class="field">
+          <div class="datetime-row">
+            <div>
+              <label class="field-label" for="start-time">시작 시간</label>
+              <input type="time" id="start-time" name="start-time" />
+            </div>
+            <div>
+              <label class="field-label" for="end-time">종료 시간</label>
+              <input type="time" id="end-time" name="end-time" />
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="location">장소</label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            placeholder="예) 본사 회의실 A / Zoom 링크"
+          />
+        </div>
+      </div>
+
+      <!-- 참석자 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">👥</span>
+          <h2 class="card-title">참석자</h2>
+        </div>
+        <div class="dynamic-list" id="attendees-list"></div>
+        <button class="btn-add" id="add-attendee" type="button">
+          <span>＋</span> 참석자 추가
+        </button>
+      </div>
+
+      <!-- 주요 논의 내용 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">💬</span>
+          <h2 class="card-title">주요 논의 내용</h2>
+        </div>
+        <div class="dynamic-list" id="discussions-list"></div>
+        <button class="btn-add" id="add-discussion" type="button">
+          <span>＋</span> 항목 추가
+        </button>
+      </div>
+
+      <!-- 결정 사항 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">✅</span>
+          <h2 class="card-title">결정 사항</h2>
+        </div>
+        <div class="dynamic-list" id="decisions-list"></div>
+        <button class="btn-add" id="add-decision" type="button">
+          <span>＋</span> 항목 추가
+        </button>
+      </div>
+
+      <!-- 액션 아이템 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <h2 class="card-title">액션 아이템</h2>
+        </div>
+        <div class="dynamic-list" id="actions-list"></div>
+        <button class="btn-add" id="add-action" type="button">
+          <span>＋</span> 액션 아이템 추가
+        </button>
+      </div>
+
+      <!-- 전체 요약 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📝</span>
+          <h2 class="card-title">전체 요약</h2>
+        </div>
+        <div class="field">
+          <label class="field-label" for="summary">요약</label>
+          <textarea
+            id="summary"
+            name="summary"
+            rows="4"
+            placeholder="회의의 전반적인 내용과 다음 단계를 간략히 요약해 주세요."
+          ></textarea>
+        </div>
+      </div>
+
+    </section>
+    <!-- end view-form -->
+
+    <!-- ─── PREVIEW VIEW ─── -->
+    <section id="view-preview" class="view" role="tabpanel" aria-labelledby="tab-preview">
+      <div class="preview-card">
+        <div class="preview-toolbar">
+          <button class="btn btn-secondary" id="btn-copy">
+            <span class="btn-icon">📋</span> 복사
+          </button>
+          <button class="btn btn-secondary" id="btn-share">
+            <span class="btn-icon">📤</span> 공유
+          </button>
+        </div>
+        <div class="preview-content" id="preview-content">
+          <div class="preview-empty">
+            <span class="preview-empty-icon">📄</span>
+            <p class="preview-empty-text">
+              입력 탭에서 회의 내용을 작성하면<br>여기에 미리보기가 표시됩니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- end view-preview -->
+
+  </main>
+
+  <!-- ── Bottom Action Bar ── -->
+  <div class="action-bar" id="form-action-bar">
+    <button class="btn btn-secondary wide" id="btn-bar-reset">
+      <span class="btn-icon">🗑</span> 초기화
+    </button>
+    <button class="btn btn-primary wide" id="btn-preview">
+      <span class="btn-icon">👁</span> 미리보기
+    </button>
+  </div>
+
+  <div class="action-bar hidden" id="preview-action-bar">
+    <button class="btn btn-secondary wide" id="btn-bar-copy">
+      <span class="btn-icon">📋</span> 복사
+    </button>
+    <button class="btn btn-primary wide" id="btn-bar-share">
+      <span class="btn-icon">📤</span> 공유
+    </button>
+  </div>
+
+  <!-- ── Toast ── -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ── Auto-save indicator ── -->
+  <div class="save-indicator" id="save-indicator">자동 저장됨</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
