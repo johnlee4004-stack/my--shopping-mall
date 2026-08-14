@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import { fetchChannelVideos } from '@/lib/youtube';
+
+export const revalidate = 3600;
 
 const categories = [
   { name: '면역력', icon: '🛡️', count: 3 },
@@ -16,13 +19,8 @@ const featured = [
   { id: 4, name: '콜라겐 뼷티 복합', price: 99000, original: 130000, icon: '✨', tag: '', rating: 4.8, sold: 670 },
 ];
 
-const youtubeContent = [
-  { title: '아침 건강 루틴 공개 | 이뮨 부스터 실제 복용법', views: '12.4K', duration: '8:24', tag: '루틴' },
-  { title: '30일 다이어트 클린즈 비포&애프터', views: '8.9K', duration: '11:05', tag: '지방연소' },
-  { title: '수면 툥질 테스트 | 슬립 & 리커버리', views: '6.2K', duration: '6:47', tag: '수면개선' },
-];
-
-export default function Home() {
+export default async function Home() {
+  const videos = await fetchChannelVideos(3);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 dark:text-white">
       {/* Header */}
@@ -126,35 +124,55 @@ export default function Home() {
       {/* YouTube Content Section */}
       <section id="youtube" className="py-10 px-4 bg-gray-900 dark:bg-black text-white">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <span className="text-red-500 text-2xl">▶</span>
-            <div>
-              <h2 className="text-xl font-bold">YouTube 연동 콘텐츠</h2>
-              <p className="text-gray-400 text-sm">영상에서 소개한 제품을 바로 구매하세요</p>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-red-500 text-2xl">▶</span>
+              <div>
+                <h2 className="text-xl font-bold">YouTube 연동 콘텐츠</h2>
+                <p className="text-gray-400 text-sm">영상에서 소개한 제품을 바로 구매하세요</p>
+              </div>
             </div>
+            <Link href="/youtube" className="text-sm text-red-400 hover:text-red-300 transition-colors">
+              전체 보기 →
+            </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {youtubeContent.map((video) => (
-              <div key={video.title} className="bg-gray-800 rounded-2xl p-5 hover:bg-gray-750 transition-colors">
-                <div className="bg-gray-700 rounded-xl h-32 flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xl ml-1">▶</span>
+            {videos.map((video) => (
+              <a
+                key={video.id}
+                href={video.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-gray-800 rounded-2xl overflow-hidden hover:ring-1 hover:ring-red-500/40 transition-all group block"
+              >
+                <div className="relative bg-gray-700 h-36 flex items-center justify-center">
+                  {video.thumbnail ? (
+                    <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-5xl opacity-20">▶</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-12 h-12 bg-red-600/90 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xl ml-1">▶</span>
+                    </div>
+                  </div>
+                  <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">{video.duration}</span>
+                </div>
+                <div className="p-4">
+                  {video.tags[0] && (
+                    <span className="text-xs px-2 py-0.5 rounded-full mb-2 inline-block bg-red-900/40 text-red-400">
+                      {video.tags[0]}
+                    </span>
+                  )}
+                  <h3 className="font-semibold text-sm mb-2 leading-snug line-clamp-2">{video.title}</h3>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>👁 {video.viewCount}</span>
+                    <span>{video.duration}</span>
                   </div>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full mb-2 inline-block ${
-                  video.tag === '루틴' ? 'bg-red-900/40 text-red-400' :
-                  video.tag === '지방연소' ? 'bg-orange-900/40 text-orange-400' :
-                  'bg-blue-900/40 text-blue-400'
-                }`}>{video.tag}</span>
-                <h3 className="font-semibold text-sm mb-2 leading-snug">{video.title}</h3>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>조회수 {video.views}</span>
-                  <span>{video.duration}</span>
-                </div>
-                <button className="mt-3 w-full bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-xl transition-colors">
-                  영상 보고 제품 확인
-                </button>
-              </div>
+              </a>
             ))}
           </div>
         </div>
