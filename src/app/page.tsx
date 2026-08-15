@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 
 const categories = [
   { name: '면역력', icon: '🛡️', count: 3 },
@@ -6,20 +6,20 @@ const categories = [
   { name: '수면/회복', icon: '🌙', count: 2 },
   { name: '피부/미용', icon: '✨', count: 2 },
   { name: '장건강', icon: '🦠', count: 3 },
-  { name: '혈관/심장', icon: '🐟', count: 2 },
+  { name: '혜관/심장', icon: '🐟', count: 2 },
 ];
 
 const featured = [
   { id: 1, name: '이뮨 부스터 Pro', price: 89000, original: 120000, icon: '🛡️', tag: 'BEST', rating: 4.8, sold: 1240 },
   { id: 2, name: '다이어트 클린즈', price: 69000, original: 89000, icon: '🔥', tag: 'NEW', rating: 4.6, sold: 430 },
   { id: 3, name: '슬립 & 리커버리', price: 79000, original: 99000, icon: '🌙', tag: '', rating: 4.9, sold: 890 },
-  { id: 4, name: '콜라겐 뷰티 복합', price: 99000, original: 130000, icon: '✨', tag: '', rating: 4.8, sold: 670 },
+  { id: 4, name: '콜라겐 뼷티 복합', price: 99000, original: 130000, icon: '✨', tag: '', rating: 4.8, sold: 670 },
 ];
 
 const youtubeContent = [
   { title: '아침 건강 루틴 공개 | 이뮨 부스터 실제 복용법', views: '12.4K', duration: '8:24', tag: '루틴' },
   { title: '30일 다이어트 클린즈 비포&애프터', views: '8.9K', duration: '11:05', tag: '지방연소' },
-  { title: '수면 품질 테스트 | 슬립 & 리커버리', views: '6.2K', duration: '6:47', tag: '수면개선' },
+  { title: '수면 툥질 테스트 | 슬립 & 리커버리', views: '6.2K', duration: '6:47', tag: '수면개선' },
 ];
 
 export default function Home() {
@@ -30,7 +30,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-black text-sm">D</div>
-            <span className="font-black text-lg">DoxHayx 쇼핑몰</span>
+            <span className="font-black text-lg">DoxHayx 쇼핑맰</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <Link href="/" className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">홈</Link>
@@ -169,11 +169,11 @@ export default function Home() {
                 <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-black text-sm">D</div>
                 <span className="font-black text-white">DoxHayx</span>
               </div>
-              <p className="text-sm max-w-xs">유튜브 콘텐츠와 연계된 건강기능식품 직접 판매 쇼핑몰</p>
+              <p className="text-sm max-w-xs">유튜브 콘텐츠와 연계된 건강기능식품 직접 판매 쇼핑맰</p>
             </div>
             <div className="flex gap-8 text-sm">
               <div>
-                <div className="text-white font-semibold mb-2">쇼핑몰</div>
+                <div className="text-white font-semibold mb-2">쇼핑맰</div>
                 <div className="space-y-1"><div>전체 제품</div><div>신규입점</div><div>베스트 셀러</div></div>
               </div>
               <div>
@@ -190,4 +190,3 @@ export default function Home() {
     </div>
   );
 }
-
